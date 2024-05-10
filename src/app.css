@@ -1,0 +1,12 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Hide Bing Streetside "Report a privacy concern with this image" */
+.streetsideReportAProblem {
+	@apply !hidden
+}
+
+* {
+	@apply outline-none
+}
