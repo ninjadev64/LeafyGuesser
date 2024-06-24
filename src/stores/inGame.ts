@@ -78,7 +78,7 @@ export const useInGameStore = defineStore("inGame", () => {
     if (inGameState.value.isEndingMultiplayerGame) {
       return "Disconnecting from this game..";
     } else if (inGameState.value.isWaitingForOtherPlayers) {
-      return "Waiting for other players to make a guess..";
+      return "Waiting for other players to guess..";
     } else if (!inGameState.value.isThisRoundReady) {
       return "Waiting for other players to get ready..";
     } else {

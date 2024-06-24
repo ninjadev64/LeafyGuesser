@@ -4,7 +4,7 @@
       <img
         src="@/assets/images/logo.svg"
         :class="$style['page__logo']"
-        alt="Geoguess Master Logo"
+        alt="LeafyGuesser Logo"
         :width="deviceState >= DEVICE_TYPES.TABLET_LANDSCAPE ? 60 : 44"
         :height="deviceState >= DEVICE_TYPES.TABLET_LANDSCAPE ? 60 : 44"
       >

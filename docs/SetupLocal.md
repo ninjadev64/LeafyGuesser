@@ -1,8 +1,8 @@
-## How to run this project on local
+## How to run this project locally
 
 ### Prerequisite
 - [Git](https://git-scm.com/)
-- [NodeJS](https://nodejs.org/), version 14.x
+- [Node.js](https://nodejs.org/), version 14.x
 - [Google Maps API](https://developers.google.com/maps/documentation/javascript/get-api-key#get-the-api-key)
 - [Firebase](https://firebase.google.com/docs/web/setup#create-firebase-project-and-app) and [Realtime Database](https://firebase.google.com/docs/database/web/start#create_a_database)
 
@@ -18,8 +18,8 @@ See the instruction in the link above.
 See the instructions in the link above.
 
 ### STEP4. Set up environment variables
-Create files named `.env.development.local` in this project to put environment variables.
-The files should look like this. (Replace the values with yours you created at STEP 2 and 3.)
+Create files named `.env.development.local` and `.env.production.local` in the project directory to set environment variables.
+The files should look like this. (Replace the values with yours you created in steps 2 and 3.)
 
 `.env.development.local`
 ```
@@ -42,7 +42,7 @@ NODE_ENV=production
 ...
 ```
 
-Now you can run this project on local.
+Now you can run this project locally with `npm run dev`.
 
 ### Project setup
 ```
