@@ -8,7 +8,7 @@
         :width="deviceState >= DEVICE_TYPES.TABLET_LANDSCAPE ? 60 : 44"
         :height="deviceState >= DEVICE_TYPES.TABLET_LANDSCAPE ? 60 : 44"
       >
-      <a href="https://github.com/spider-hand/GeoguessMaster">
+      <a href="https://github.com/spider-hand/LeafyGuesser">
         <img
           src="@/assets/images/github.svg"
           :class="$style['page__github-ribbon']"
@@ -33,7 +33,7 @@
     <footer :class="$style['page__footer']">
       <span>
         All rights reserved. Copyright © {{ new Date().getFullYear() }}
-        <strong>GeoguessMaster</strong>
+        <strong>LeafyGuesser</strong>
       </span>
     </footer>
   </div>

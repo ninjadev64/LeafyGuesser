@@ -8,7 +8,7 @@
 
 ### STEP1. Clone this repository
 ```
-git clone https://github.com/spider-hand/Geoguess-Master.git
+git clone https://github.com/ninjadev64/LeafyGuesser.git
 ```
 
 ### STEP2. Get Google Maps API key
