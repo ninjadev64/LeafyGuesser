@@ -8,7 +8,7 @@
         :width="deviceState >= DEVICE_TYPES.TABLET_LANDSCAPE ? 60 : 44"
         :height="deviceState >= DEVICE_TYPES.TABLET_LANDSCAPE ? 60 : 44"
       >
-      <a href="https://github.com/spider-hand/LeafyGuesser">
+      <a href="https://github.com/ninjadev64/LeafyGuesser">
         <img
           src="@/assets/images/github.svg"
           :class="$style['page__github-ribbon']"
