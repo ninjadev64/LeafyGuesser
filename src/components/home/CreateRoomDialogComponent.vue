@@ -59,7 +59,7 @@
     </div>
     <div :class="$style['create-room-dialog__form']">
       <div :class="$style['create-room-dialog__form-text']">
-        Are you a host?
+        Are you the host?
       </div>
       <SwitchComponent
         :ans="isOwner"

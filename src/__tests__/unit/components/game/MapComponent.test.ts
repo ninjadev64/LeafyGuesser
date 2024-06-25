@@ -21,11 +21,12 @@ describe("MapComponent", () => {
     selectedMode: "single",
     randomLatLng: new google.maps.LatLng(1, 1),
     selectedLatLng: new google.maps.LatLng(100, 100),
-    selectedLatLngArr: [
-      new google.maps.LatLng(100, 100),
-      new google.maps.LatLng(100, 100),
-    ],
-    gameHistory: Array.from(new Array(5), (_) => ({
+    selectedLatLngMap: new Map<string, google.maps.LatLng>([
+      [ "1", new google.maps.LatLng(100, 100) ],
+      [ "2", new google.maps.LatLng(100, 100) ],
+    ]),
+    ownColour: "#310000",
+    gameHistory: Array.from(new Array(5), () => ({
       randomLatLng: new google.maps.LatLng(1, 1),
       selectedLatLng: new google.maps.LatLng(100, 100),
     })),
@@ -88,7 +89,7 @@ describe("MapComponent", () => {
     });
 
     wrapper.vm.showSummary();
-    
+
     expect(putMarkerMock).toHaveBeenCalledTimes(10);
     expect(drawPolylineMock).toHaveBeenCalledTimes(5);
   });

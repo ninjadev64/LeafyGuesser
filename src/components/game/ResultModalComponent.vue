@@ -86,6 +86,7 @@
 
 <script setup lang="ts">
 import { Summary, DistanceByPlayer, ModeTypes } from "@/types";
+import { calculateScore } from "@/utils";
 import { PropType, computed } from "vue";
 
 const props = defineProps({
@@ -129,9 +130,9 @@ const props = defineProps({
 
 const resultText = computed(() => {
   if (props.isShowingSummary) {
-    return `You are <strong>${props.score}</strong>km away in total &#127881;`;
+    return `You scored <strong>${props.score}</strong> points in total &#127881;`;
   } else {
-    return `You are <strong>${props.distance}</strong>km away &#128640;`;
+    return `You are <strong>${props.distance}</strong>km away (+<strong>${calculateScore(props.distance)}</strong> points) &#128640;`;
   }
 });
 
@@ -143,7 +144,7 @@ const multiplayerResultText = computed(() => {
       props.distanceByPlayerArr[i].playerName
     }</strong> is <strong>${
       props.distanceByPlayerArr[i].distance
-    }</strong>km away${i === 0 ? "&#127941;" : ""}<br>`;
+    }</strong>km away (+<strong>${calculateScore(props.distanceByPlayerArr[i].distance)}</strong> points) ${i === 0 ? "&#127941;" : ""}<br>`;
   }
 
   return text;
@@ -155,9 +156,9 @@ const multiplayerSummaryText = computed(() => {
   for (let i = 0; i < props.multiplayerGameSummary.length; i++) {
     text += `<strong>${
       props.multiplayerGameSummary[i].playerName
-    }</strong> is <strong>${
+    }</strong> scored <strong>${
       props.multiplayerGameSummary[i].score
-    }</strong>km away in total${i === 0 ? "&#127941;" : ""}<br>`;
+    }</strong> points in total${i === 0 ? "&#127941;" : ""}<br>`;
   }
 
   return text;

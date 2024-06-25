@@ -147,7 +147,7 @@ import OverlayComponent from "@/components/game/OverlayComponent.vue";
 import IconButtonComponent from "@/components/shared/IconButtonComponent.vue";
 import { database } from "@/firebase";
 import { DEVICE_TYPES } from "@/constants";
-import { stringToColour } from "@/utils";
+import { calculateScore, stringToColour } from "@/utils";
 import { storeToRefs } from "pinia";
 import { useGameSettingsStore } from "@/stores/gameSettings";
 import { useInGameStore } from "@/stores/inGame";
@@ -399,7 +399,7 @@ const onCountdownFinished = () => {
 
 const onClickGuessButton = async (): Promise<void> => {
   try {
-    inGameState.value.score += distance.value as number;
+    inGameState.value.score += calculateScore(distance.value as number);
     mapRef.value?.removeListener();
 
     if (gameSettingsState.value.selectedMode !== "multiplayer") {
@@ -447,6 +447,7 @@ const onClickNextRoundButton = async (): Promise<void> => {
 
     mapRef.value?.removeMarkers();
     mapRef.value?.removePolyline();
+    mapRef.value?.recentre();
 
     if (
       gameSettingsState.value.selectedMode === "multiplayer" &&

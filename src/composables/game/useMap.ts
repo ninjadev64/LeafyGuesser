@@ -24,8 +24,8 @@ export const useMap = (mapRef: Ref<HTMLElement | undefined>) => {
         glyph: span,
         glyphColor: "#ffffff",
         background: colour,
-        borderColor: colour
-      }).element
+        borderColor: colour,
+      }).element,
     });
     markers.value.push(marker);
   };
@@ -33,7 +33,7 @@ export const useMap = (mapRef: Ref<HTMLElement | undefined>) => {
   const drawPolyline = (
     from: google.maps.LatLng,
     to: google.maps.LatLng,
-    strokeColor: string
+    strokeColor: string,
   ): void => {
     const polyline = new google.maps.Polyline({
       path: [from, to],
@@ -47,9 +47,9 @@ export const useMap = (mapRef: Ref<HTMLElement | undefined>) => {
             scale: 4,
           },
           offset: "10px",
-          repeat: "20px"
-        }
-      ]
+          repeat: "20px",
+        },
+      ],
     });
     polyline.setMap(map.value as google.maps.Map);
     polylines.value.push(polyline);
@@ -62,6 +62,19 @@ export const useMap = (mapRef: Ref<HTMLElement | undefined>) => {
     polylines.value = [];
   };
 
+  const centreOnMarkers = (): void => {
+    const bounds = new google.maps.LatLngBounds();
+    for (let i = 0; i < markers.value.length; i++) {
+      bounds.extend(markers.value[i].position as google.maps.LatLng);
+    }
+    map.value?.fitBounds(bounds);
+  }
+
+  const recentre = (): void => {
+    map.value?.setCenter({ lat: 0, lng: 0 });
+    map.value?.setZoom(0.5);
+  }
+
   onMounted(() => {
     if (mapRef.value) {
       map.value = new google.maps.Map(mapRef.value as HTMLElement, {
@@ -73,7 +86,7 @@ export const useMap = (mapRef: Ref<HTMLElement | undefined>) => {
         // Unfortunately, Google requires a map ID in order to use Advanced Markers.
         // To save people hosting the game from having to create a map ID, we use
         // the demo ID (even though Google recommends using it only for testing).
-        mapId: "DEMO_MAP_ID"
+        mapId: "DEMO_MAP_ID",
       });
     }
   });
@@ -86,5 +99,7 @@ export const useMap = (mapRef: Ref<HTMLElement | undefined>) => {
     putMarker,
     drawPolyline,
     removePolyline,
+    centreOnMarkers,
+    recentre,
   };
 };

@@ -11,7 +11,7 @@ describe("ResultModalComponent", () => {
     distance: 10000,
     distanceByPlayerArr: [],
     round: 1,
-    score: 10000,
+    score: 34,
     multiplayerGameSummary: [],
   };
 
@@ -31,7 +31,7 @@ describe("ResultModalComponent", () => {
       props: props,
     });
 
-    expect(wrapper.find(singleResult).text()).toBe("You are 10000km away 🚀");
+    expect(wrapper.find(singleResult).text()).toBe("You are 10000km away (+34 points) 🚀");
   });
 
   it("should show a button to proceed to next round in single mode", async () => {
@@ -70,7 +70,7 @@ describe("ResultModalComponent", () => {
     });
 
     expect(wrapper.find(singleResult).text()).toBe(
-      "You are 10000km away in total 🎉"
+      "You scored 34 points in total 🎉"
     );
   });
 
@@ -103,7 +103,7 @@ describe("ResultModalComponent", () => {
     });
 
     expect(wrapper.find(multiplayerResult).text()).toBe(
-      "player1 is 1000km away🏅player2 is 2000km away"
+      "player1 is 1000km away (+3033 points) 🏅player2 is 2000km away (+1839 points)"
     );
   });
 
@@ -151,14 +151,14 @@ describe("ResultModalComponent", () => {
         selectedMode: "multiplayer",
         isShowingSummary: true,
         multiplayerGameSummary: [
-          { playerName: "player1", score: 10000 },
-          { playerName: "player2", score: 20000 },
+          { playerName: "player1", score: 3033 },
+          { playerName: "player2", score: 1839 },
         ],
       },
     });
 
     expect(wrapper.find(multiplayerSummary).text()).toBe(
-      "player1 is 10000km away in total🏅player2 is 20000km away in total"
+      "player1 scored 3033 points in total🏅player2 scored 1839 points in total"
     );
   });
 

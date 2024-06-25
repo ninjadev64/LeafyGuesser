@@ -42,3 +42,5 @@ export const stringToColour = (str: string) => {
   }
   return colour;
 }
+
+export const calculateScore = (km: number): number => Math.round(5000 * (Math.E ** (-km / 2000)));

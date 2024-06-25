@@ -58,7 +58,7 @@ const emit = defineEmits<{
 }>();
 
 const mapRef = ref<HTMLElement>();
-const { map, removeMarkers, removePolyline, putMarker, drawPolyline } =
+const { map, removeMarkers, removePolyline, putMarker, drawPolyline, centreOnMarkers, recentre } =
   useMap(mapRef);
 
 const attachListener = (): void => {
@@ -75,6 +75,7 @@ const removeListener = (): void => {
 
 const showResult = (): void => {
   removeMarkers();
+  removePolyline();
   if (
     props.selectedMode === "single" &&
     props.randomLatLng !== null &&
@@ -90,20 +91,23 @@ const showResult = (): void => {
     putMarker(props.randomLatLng, "actual", "hsl(0, 100%, 63%)");
     props.selectedLatLngMap.forEach((latLng, playerId) => {
       const colour = stringToColour(playerId);
-      if (latLng.equals(props.selectedLatLng)) putMarker(latLng, "guess", colour);
+      if (latLng.equals?.(props.selectedLatLng)) putMarker(latLng, "guess", colour);
       else putMarker(latLng, "otherPlayer", colour);
       drawPolyline(props.randomLatLng as google.maps.LatLng, latLng, colour);
     });
   }
+  setTimeout(centreOnMarkers, 10);
 };
 
 const showSummary = (): void => {
   removeMarkers();
+  removePolyline();
   props.gameHistory.forEach((e) => {
     putMarker(e.randomLatLng, "actual", props.ownColour);
     putMarker(e.selectedLatLng, "guess", props.ownColour);
     drawPolyline(e.randomLatLng, e.selectedLatLng, props.ownColour);
   });
+  setTimeout(centreOnMarkers, 10);
 };
 
 defineExpose({
@@ -111,6 +115,7 @@ defineExpose({
   removeListener,
   removeMarkers,
   removePolyline,
+  recentre,
   showResult,
   showSummary,
 });
