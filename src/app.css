@@ -2,11 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Hide Bing Streetside "Report a privacy concern with this image" */
-.streetsideReportAProblem {
-	@apply !hidden
-}
-
-* {
-	@apply outline-none
+body {
+	@apply bg-neutral-800;
 }

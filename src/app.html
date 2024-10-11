@@ -1,10 +1,22 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 	<head>
 		<meta charset="utf-8" />
 		<link rel="icon" href="%sveltekit.assets%/favicon.png" />
-		<meta name="viewport" content="width=device-width, initial-scale=1" />
-		<!--<script src="https://cdn.jsdelivr.net/npm/eruda" onload="eruda.init();"></script>-->
+		<meta name="viewport" content="width=device-width" />
+		<title>LeafyGuesser</title>
+		<!-- Material Icons font used for marker glyphs -->
+		<link
+			href="https://fonts.googleapis.com/icon?family=Material+Icons"
+			rel="stylesheet"
+		/>
+		<script>
+			(() => {
+				if (!/eruda=true/.test(window.location) && localStorage.getItem("active-eruda") != "true") return;
+				document.write("<scr" + 'ipt src="' + "//cdn.jsdelivr.net/npm/eruda" + '"></scr' + "ipt>");
+				document.write("<scr" + "ipt> eruda.init(); </scr" + "ipt>");
+			})();
+		</script>
 		%sveltekit.head%
 	</head>
 	<body data-sveltekit-preload-data="hover">

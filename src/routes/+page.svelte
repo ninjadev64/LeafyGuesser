@@ -1,155 +1,258 @@
 <script lang="ts">
-	import { getDistanceFromLatLngInKm, isMobile, random } from "$lib/utils";
-	import isSea from "is-sea";
+	import { getPoints } from "$lib/utils";
+
 	import { onMount } from "svelte";
+	import isSea from "$lib/is-sea";
 
-	let panoramaElement: HTMLDivElement;
-	let mapElement: HTMLDivElement;
+	import Gear from "phosphor-svelte/lib/Gear";
+	import Popup from "$lib/components/Popup.svelte";
 
-	// The correct coordinates of the generated location.
-	let actual: { lat: number, lng: number } = { lat: 0, lng: 0 };
-	// The coordinates guessed by the user.
-	let guessed: { lat: number, lng: number } | null = null;
-
-	function createPanorama(maps: any) {
-		let lat = random(-90, 90);
-		let lon = random(-180, 180);
-		while (!isMobile() && isSea(lat, lon)) {
-			lat = random(-90, 90);
-			lon = random(-180, 180);
-		}
-
-		maps.Map.getClosestPanorama(
-			new maps.LocationRect(new maps.Location(lat, lon), 10, 10),
-			(panoramaInfo: any) => {
-				actual = { lat: panoramaInfo.la, lng: panoramaInfo.lo };
-				new maps.Map(panoramaElement, {
-					mapTypeId: maps.MapTypeId.streetside,
-					zoom: 18,
-					streetsideOptions: {
-						panoramaInfo,
-						showCurrentAddress: false,
-						showHeadingCompass: false,
-						showExitButton: false,
-						overviewMapMode: maps.OverviewMapMode.hidden
-					}
-				});
-			},
-			() => createPanorama(maps)
-		);
+	let maps: google.maps.MapsLibrary, streetView: google.maps.StreetViewLibrary, markers: google.maps.MarkerLibrary;
+	async function importLibraries() {
+		await import("$lib/googlemaps");
+		maps = await google.maps.importLibrary("maps") as google.maps.MapsLibrary;
+		streetView = await google.maps.importLibrary("streetView") as google.maps.StreetViewLibrary;
+		markers = await google.maps.importLibrary("marker") as google.maps.MarkerLibrary;
 	}
 
-	let map: import("leaflet").Map;
-	let marker: import("leaflet").Marker | null = null;
-	async function createMap(interactive: boolean) {
-		const leaflet = await import("leaflet");
-		map = leaflet.map(mapElement).setView([ 0, 0 ], 1);
-		marker = null;
+	// Choose a random location on land
+	function chooseLocation() {
+		const location = {
+			lat: Math.random() * 150 - 70,
+			lng: Math.random() * 360 - 180,
+		};
+		if (isSea(location.lat, location.lng)) return chooseLocation();
+		else return location;
+	}
 
-		leaflet.tileLayer(
-			"https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-			{
-				maxZoom: 19,
-				attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-			}
-		)
-		.addTo(map);
+	let guessMarker: google.maps.marker.AdvancedMarkerElement, allMarkers: google.maps.marker.AdvancedMarkerElement[] = [], allPolylines: google.maps.Polyline[] = [];
+	export function putMarker(position: google.maps.LatLng, type: "actual" | "guess" | "otherPlayer", colour: string): google.maps.marker.AdvancedMarkerElement {
+		const span = document.createElement("span");
+		span.style.fontFamily = "'Material Icons'";
+		span.style.fontSize = "18px";
+		span.innerHTML = type == "actual" ? "\ue153" : (type == "guess" ? "\ue837" : "\ue853");
+		const marker = new google.maps.marker.AdvancedMarkerElement({
+			position: position,
+			map,
+			content: new google.maps.marker.PinElement({
+				glyph: span,
+				glyphColor: "#ffffff",
+				background: colour,
+				borderColor: colour,
+			}).element,
+		});
+		allMarkers.push(marker);
+		return marker;
+	}
 
-		if (interactive) {
-			const resizeObserver = new ResizeObserver(() => map.invalidateSize());
-			resizeObserver.observe(mapElement);
+	enum GameState {
+		PLAY,
+		RESULTS,
+	}
+	let gameState: GameState = GameState.PLAY;
 
-			map.on("click", (e) => {
-				if (e.originalEvent.target != mapElement) return;
-				if (isSea(e.latlng.lat, e.latlng.lng)) return;
-				if (marker) marker.setLatLng(e.latlng);
-				else marker = leaflet.marker(e.latlng).addTo(map);
+	let map: google.maps.Map, pano: google.maps.StreetViewPanorama;
+	let mapContainer: HTMLDivElement, panoContainer: HTMLDivElement;
+	let actual: google.maps.LatLng, guessed: google.maps.LatLng;
+
+	type Settings = {
+		move: boolean;
+		pan: boolean;
+		zoom: boolean;
+	};
+	const settings: Settings = { move: true, pan: true, zoom: true };
+	$: {
+		if (!settings.pan) {
+			settings.move = false;
+			settings.zoom = false;
+		}
+		if (pano) {
+			pano.setOptions({
+				linksControl: settings.move,
+				clickToGo: settings.move,
+				panControl: settings.pan,
+				zoomControl: settings.zoom,
+				scrollwheel: settings.zoom,
+				disableDoubleClickZoom: !settings.zoom,
 			});
 		}
-
-		mapElement.style.display = "flex";
 	}
+	let settingsOpen = false;
 
-	async function load() {
-		guessed = null;
+	async function reset() {
+		allMarkers.forEach((marker) => {
+			marker.map = null;
+			marker.remove();
+		});
+		allMarkers = [];
+		allPolylines.forEach((polyline) => polyline.setMap(null));
+		allPolylines = [];
+		gameState = GameState.PLAY;
 
-		// @ts-expect-error
-		let maps = Microsoft.Maps;
-		createPanorama(maps);
+		// Initialise map
+		if (!map) map = new maps.Map(mapContainer, { mapId: "DEMO_MAP_ID", fullscreenControl: false });
+		map.setCenter({ lat: 0, lng: 0 });
+		map.setZoom(0.6);
+		map.addListener("click", (e: google.maps.MapMouseEvent) => {
+			if (gameState != GameState.PLAY) return;
+			guessed = e.latLng!;
+			if (guessMarker) guessMarker.map = null;
+			guessMarker = putMarker(e.latLng!, "guess", "hsl(0, 100%, 63%)");
+		});
 
-		createMap(true);
-	}
+		// Fetch closest panorama location
+		actual = (await (new streetView.StreetViewService()).getPanorama({
+			location: chooseLocation(),
+			radius: 3e6,
+			sources: [streetView.StreetViewSource.OUTDOOR],
+			preference: google.maps.StreetViewPreference.NEAREST,
+		})).data.location?.latLng!;
 
-	onMount(() => {
-		if (document.readyState == "loading") {
-			document.addEventListener("DOMContentLoaded", load);
+		// Initialise panorama
+		if (!pano) {
+			pano = new google.maps.StreetViewPanorama(
+				panoContainer,
+				{
+					position: actual,
+					addressControl: false,
+					panControlOptions: {
+						position: google.maps.ControlPosition.LEFT_CENTER,
+					},
+					zoomControlOptions: {
+						position: google.maps.ControlPosition.LEFT_CENTER,
+					},
+					motionTracking: false,
+					motionTrackingControl: false,
+					fullscreenControl: false,
+				},
+			);
 		} else {
-			load();
+			pano.setPosition(actual);
 		}
+		pano.setPov(pano.getPhotographerPov());
+		map.setStreetView(pano);
+	}
+
+	function guess() {
+		putMarker(actual, "actual", "hsl(0, 100%, 63%)");
+		const polyline = new google.maps.Polyline({
+			map,
+			path: [guessed, actual],
+			strokeColor: "hsl(0, 100%, 63%)",
+			strokeOpacity: 0,
+			icons: [
+				{
+					icon: {
+						path: "M 0,-1 0,1",
+						strokeOpacity: 1,
+						scale: 4,
+					},
+					offset: "10px",
+					repeat: "20px",
+				},
+			],
+		});
+		allPolylines.push(polyline);
+
+		let bounds = new google.maps.LatLngBounds();
+		allMarkers.forEach((marker) => bounds.extend(marker.position!));
+		map.setZoom(Infinity);
+		map.fitBounds(bounds);
+
+		gameState = GameState.RESULTS;
+	}
+
+	onMount(async () => {
+		await importLibraries();
+
+		await reset();
+
+		setTimeout(() => {
+			// Un-invert colours and dismiss warning when API key is invalid or exhausted
+			if ((document.querySelector(".mapsConsumerUiSceneCoreScene__canvas")! as HTMLCanvasElement).style.filter == "invert(1)") {
+				(document.querySelector(".mapsConsumerUiSceneCoreScene__root")! as HTMLDivElement).style.filter = "invert(1)";
+				(document.querySelector(".dismissButton")! as HTMLButtonElement).click();
+			}
+		}, 500);
 	});
 
-	async function guess() {
-		guessed = marker!.getLatLng();
-		await createMap(false);
-		const leaflet = await import("leaflet");
-		let icon = leaflet.icon({
-			iconUrl: "/flag.png",
-			iconSize: [ 36, 36 ]
-		});
-		leaflet.marker(guessed).addTo(map);
-		leaflet.marker(actual, { icon }).addTo(map);
-		leaflet.polyline([ guessed, actual ], { color: "#666a66", dashArray: "4 6" }).addTo(map);
-	}
+	const playMapClasses = "flex-col absolute right-0 bottom-0 m-4 sm:m-6 " +
+		"sm:!w-[20rem] h-[12rem] " +
+		"sm:hover:!w-[40rem] hover:h-[18rem] sm:hover:!h-[24rem] " +
+		"transition-all duration-200 " +
+		"rounded-md z-20";
 
-	function getPoints(km: number): number {
-		// some magic I made
-		return Math.floor(5000 * (Math.E ** (-km / 2250)));
-	}
+	const resultsMapClasses = "absolute left-1/2 top-[45%] -translate-x-1/2 -translate-y-1/2 " +
+		"sm:!w-[48rem] h-[32rem] " +
+		"transition-all duration-200 " +
+		"rounded-md";
 </script>
 
-<svelte:head>
-	<title> LeafyGuesser </title>
-	<script src="https://www.bing.com/api/maps/mapcontrol?callback=GetMap&key=Anq5yPQTmPkdnG6LkbHm4e8azPHpUxXJvqKpzn7kVflejFUVttZTZt1bi_li4hJd" defer></script>
-	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
-</svelte:head>
+<div
+	bind:this={panoContainer}
+	class="h-screen"
+	class:pointer-events-none={gameState == GameState.RESULTS || settingsOpen || !settings.pan}
+	class:blur-lg={gameState == GameState.RESULTS || settingsOpen}
+/>
 
-{#if !guessed}
-	<div
-		bind:this={panoramaElement}
-		class="w-full h-screen"
-	>
-		<div class="flex flex-col h-screen justify-center items-center">
-			<p class="font-bold text-2xl"> LeafyGuesser </p>
-			<p class="text-xl"> Loading... </p>
-		</div>
-	</div>
+<!-- deno-fmt-ignore -->
+<div
+	class={gameState == GameState.PLAY ? playMapClasses : resultsMapClasses}
+	class:hidden={settingsOpen}
+	style="width: calc(100% - 2rem); # couldn't get calc working in tailwind (w-[...])"
+	bind:this={mapContainer}
+>
+	{#if gameState == GameState.PLAY && guessMarker && guessMarker.map}
+		<button
+			class="absolute bottom-0 p-2 w-full font-semibold text-md text-white bg-green-500 rounded-b-md z-20"
+			on:click={guess}
+		>
+			Guess
+		</button>
+	{:else if gameState == GameState.RESULTS}
+		<button
+			class="absolute bottom-0 p-2 w-full font-semibold text-md text-white bg-green-500 rounded-b-md z-20"
+			on:click={reset}
+		>
+			Continue
+		</button>
+	{/if}
+</div>
 
-	<div
-		bind:this={mapElement}
-		class="
-			flex-col absolute right-0 bottom-0 m-4 sm:m-6 hidden
-			sm:!w-[20rem] h-[12rem]
-			sm:hover:!w-[40rem] hover:h-[18rem] sm:hover:!h-[24rem]
-			transition-all duration-200
-			rounded-md
-		"
-		style="width: calc(100% - 2rem); # couldn't get calc working in tailwind (w-[...])"
+{#if gameState == GameState.RESULTS}
+	<span
+		class="fixed left-1/2 -translate-x-1/2 -translate-y-1/2 font-extrabold text-4xl text-white z-20"
+		style="top: calc(45% + 20rem)"
 	>
-		{#if marker}
-			<button
-				class="absolute bottom-0 z-[100000] p-2 w-full font-semibold text-md bg-green-200 rounded-b-md"
-				on:click={guess}
-			>
-				Guess
-			</button>
-		{/if}
-	</div>
-{:else}
-	<div class="flex flex-col justify-center items-center h-screen bg-gray-700">
-		<h2 class="font-bold text-2xl text-gray-50"> Guessed! </h2>
-		<p class="text-lg text-gray-50"> {Intl.NumberFormat().format(getDistanceFromLatLngInKm(guessed, actual))} km </p>
-		<p class="text-lg text-gray-50"> {getPoints(getDistanceFromLatLngInKm(guessed, actual))} points </p>
-		<div bind:this={mapElement} class="my-4 w-[40rem] h-[24rem] rounded-md" />
-		<button class="px-4 py-2 text-gray-200 bg-green-600 rounded-md" on:click={load}> Play again </button>
-	</div>
+		{
+			getPoints(
+				{ lat: guessed.lat(), lng: guessed.lng() },
+				{ lat: actual.lat(), lng: actual.lng() },
+			)
+		}
+		points
+	</span>
 {/if}
+
+<button
+	class="absolute left-2 top-2 w-10 h-10 hidden justify-center items-center font-bold text-xl text-white bg-neutral-700 rounded-full z-30"
+	class:!flex={gameState == GameState.RESULTS}
+	on:click={() => settingsOpen = !settingsOpen}
+>
+	<Gear />
+</button>
+
+<Popup show={settingsOpen}>
+	<div class="flex flex-row items-center m-2 space-x-2" class:opacity-50={!settings.pan}>
+		<span class="dark:text-neutral-400"> Move: </span>
+		<input type="checkbox" bind:checked={settings.move} />
+	</div>
+	<div class="flex flex-row items-center m-2 space-x-2">
+		<span class="dark:text-neutral-400"> Pan: </span>
+		<input type="checkbox" bind:checked={settings.pan} />
+	</div>
+	<div class="flex flex-row items-center m-2 space-x-2" class:opacity-50={!settings.pan}>
+		<span class="dark:text-neutral-400"> Zoom: </span>
+		<input type="checkbox" bind:checked={settings.zoom} />
+	</div>
+</Popup>

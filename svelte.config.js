@@ -6,6 +6,6 @@ export default {
 	preprocess: vitePreprocess(),
 
 	kit: {
-		adapter: adapter()
-	}
+		adapter: adapter(),
+	},
 };
