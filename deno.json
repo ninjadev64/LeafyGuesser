@@ -1,13 +1,14 @@
 {
 	"fmt": {
 		"useTabs": true,
-		"lineWidth": 200,
+		"lineWidth": 120,
 		"proseWrap": "never",
 		"include": ["src/"]
 	},
 	"lint": {
 		"rules": {
 			"exclude": ["prefer-const", "no-explicit-any"]
-		}
+		},
+		"include": ["src/"]
 	}
 }
