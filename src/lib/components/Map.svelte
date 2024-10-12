@@ -15,6 +15,7 @@
 		$allMarkers = [];
 		$allPolylines.forEach((polyline) => polyline.setMap(null));
 		$allPolylines = [];
+		$game.guessed = null;
 		$game.state = GameState.PLAY;
 
 		// Initialise map
@@ -35,14 +36,15 @@
 		});
 	}
 
-	function guess() {
+	export function guess() {
 		$allMarkers.push(putMarker($game.actual, "actual", "hsl(0, 100%, 63%)"));
-		$allPolylines.push(putPolyline($game.actual, $game.guessed, "hsl(0, 100%, 63%)"));
+		if ($game.guessed) $allPolylines.push(putPolyline($game.actual, $game.guessed, "hsl(0, 100%, 63%)"));
 
 		let bounds = new google.maps.LatLngBounds();
 		$allMarkers.forEach((marker) => bounds.extend(marker.position!));
-		$map.setZoom(Infinity);
+		if ($game.guessed) $map.setZoom(Infinity);
 		$map.fitBounds(bounds);
+		if (!$game.guessed) $map.setZoom(5);
 
 		$game.state = GameState.RESULTS;
 	}

@@ -10,7 +10,7 @@ export function random(min: number, max: number): number {
 // Choose a random location on land
 export function chooseLocation() {
 	const location = {
-		lat: random(-80, 80),
+		lat: random(-70, 70),
 		lng: random(-180, 180),
 	};
 	if (isSea(location.lat, location.lng)) return chooseLocation();
@@ -82,9 +82,10 @@ export function getDistanceFromLatLngInKm(
 }
 
 export function getPoints(
-	loc1: { lat: number; lng: number },
-	loc2: { lat: number; lng: number },
+	loc1: { lat: number; lng: number } | null,
+	loc2: { lat: number; lng: number } | null,
 ) {
+	if (!loc1 || !loc2) return 0;
 	return Math.floor(
 		5000 * (Math.E ** (-getDistanceFromLatLngInKm(loc1, loc2) / 2000)),
 	);

@@ -14,7 +14,8 @@
 	style="top: calc(45% + 20rem)"
 >
 	<button
-		class="p-2 w-[48rem] font-semibold text-md text-white bg-green-500 rounded-md"
+		class="p-2 sm:!w-[48rem] font-semibold text-md text-white bg-green-500 rounded-md"
+		style="width: calc(100vw - 2rem)"
 		on:click={reset}
 	>
 		Continue
@@ -23,8 +24,8 @@
 	<span class="mt-8 font-extrabold text-4xl text-white">
 		{
 			getPoints(
-				{ lat: $game.guessed.lat(), lng: $game.guessed.lng() },
 				{ lat: $game.actual.lat(), lng: $game.actual.lng() },
+				$game.guessed ? { lat: $game.guessed.lat(), lng: $game.guessed.lng() } : null,
 			)
 		}
 		points
@@ -44,18 +45,28 @@
 		class="flex flex-row items-center m-2 space-x-2"
 		class:opacity-50={!$settings.pan}
 	>
-		<span class="dark:text-neutral-400"> Move: </span>
+		<span class="text-neutral-400"> Move: </span>
 		<input type="checkbox" bind:checked={$settings.move} />
 	</div>
 	<div class="flex flex-row items-center m-2 space-x-2">
-		<span class="dark:text-neutral-400"> Pan: </span>
+		<span class="text-neutral-400"> Pan: </span>
 		<input type="checkbox" bind:checked={$settings.pan} />
 	</div>
 	<div
 		class="flex flex-row items-center m-2 space-x-2"
 		class:opacity-50={!$settings.pan}
 	>
-		<span class="dark:text-neutral-400"> Zoom: </span>
+		<span class="text-neutral-400"> Zoom: </span>
 		<input type="checkbox" bind:checked={$settings.zoom} />
+	</div>
+	<span class="flex flex-row items-center m-2 mt-6 space-x-2 text-neutral-400"> Timer: {$settings.timer}s </span>
+	<div class="flex flex-row items-center m-2 space-x-2">
+		<button class="w-6 h-6 text-neutral-300 bg-neutral-600 rounded-full" on:click={() => $settings.timer -= 1}>
+			-
+		</button>
+		<input type="range" min="0" max="600" bind:value={$settings.timer} />
+		<button class="w-6 h-6 text-neutral-300 bg-neutral-600 rounded-full" on:click={() => $settings.timer += 1}>
+			+
+		</button>
 	</div>
 </Popup>

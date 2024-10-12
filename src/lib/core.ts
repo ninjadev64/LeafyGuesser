@@ -24,19 +24,21 @@ export enum GameState {
 export type Game = {
 	state: GameState;
 	actual: google.maps.LatLng;
-	guessed: google.maps.LatLng;
+	guessed: google.maps.LatLng | null;
 };
-export let game: Writable<Game> = writable({ state: GameState.PLAY, actual: null!, guessed: null! });
+export let game: Writable<Game> = writable({ state: GameState.PLAY, actual: null!, guessed: null });
 
 export type Settings = {
 	move: boolean;
 	pan: boolean;
 	zoom: boolean;
+	timer: number;
 };
 export const settings: Writable<Settings> = writable({
 	move: true,
 	pan: true,
 	zoom: true,
+	timer: 120,
 });
 settings.subscribe((value) => {
 	if (!value.pan) {

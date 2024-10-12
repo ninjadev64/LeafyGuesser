@@ -2,6 +2,22 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+	font-family: "Inter";
+	src: url("/Inter-VariableFont_opsz,wght.ttf");
+	font-style: normal;
+}
+
+@font-face {
+	font-family: "Inter";
+	src: url("/Inter-Italic-VariableFont_opsz,wght.ttf");
+	font-style: italic;
+}
+
+* {
+	font-family: "Inter";
+}
+
 body {
 	@apply bg-neutral-800;
 }
