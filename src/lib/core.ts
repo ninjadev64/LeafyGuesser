@@ -18,6 +18,7 @@ export let map: Writable<google.maps.Map> = writable(),
 	pano: Writable<google.maps.StreetViewPanorama> = writable();
 
 export enum GameState {
+	SETUP,
 	PLAY,
 	RESULTS,
 }
@@ -26,7 +27,7 @@ export type Game = {
 	actual: google.maps.LatLng;
 	guessed: google.maps.LatLng | null;
 };
-export let game: Writable<Game> = writable({ state: GameState.PLAY, actual: null!, guessed: null });
+export let game: Writable<Game> = writable({ state: GameState.SETUP, actual: null!, guessed: null });
 
 export type Settings = {
 	move: boolean;

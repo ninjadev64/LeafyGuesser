@@ -37,6 +37,24 @@
 			$pano.setPosition($game.actual);
 		}
 		$pano.setPov($pano.getPhotographerPov());
+
+		setTimeout(() => {
+			// Un-invert colours and dismiss warning when API key is invalid or exhausted
+			const canvas = document.querySelector(".mapsConsumerUiSceneCoreScene__canvas") as HTMLCanvasElement;
+			if (canvas && canvas.style.filter == "invert(1)") {
+				(document.querySelector(".mapsConsumerUiSceneCoreScene__root")! as HTMLDivElement).style.filter = "invert(1)";
+				(document.evaluate(
+					"//div[text() = 'For development purposes only']",
+					document,
+					null,
+					XPathResult.ANY_TYPE,
+					null,
+				).iterateNext()! as HTMLDivElement).style.display = "none";
+				(document.querySelectorAll(".dismissButton")! as NodeListOf<HTMLButtonElement>).forEach((element) =>
+					element.click()
+				);
+			}
+		}, 500);
 	}
 </script>
 

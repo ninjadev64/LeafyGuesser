@@ -4,6 +4,7 @@
 	import Map from "$lib/components/Map.svelte";
 	import Panorama from "$lib/components/Panorama.svelte";
 	import ResultsView from "$lib/components/ResultsView.svelte";
+	import SetupView from "$lib/components/SetupView.svelte";
 	import Timer from "$lib/components/Timer.svelte";
 
 	import { onMount } from "svelte";
@@ -17,29 +18,12 @@
 
 	let settingsOpen = false;
 
-	onMount(async () => {
-		await importLibraries();
-		await reset();
-
-		setTimeout(() => {
-			// Un-invert colours and dismiss warning when API key is invalid or exhausted
-			const canvas = document.querySelector(".mapsConsumerUiSceneCoreScene__canvas") as HTMLCanvasElement;
-			if (canvas && canvas.style.filter == "invert(1)") {
-				(document.querySelector(".mapsConsumerUiSceneCoreScene__root")! as HTMLDivElement).style.filter = "invert(1)";
-				(document.evaluate(
-					"//div[text() = 'For development purposes only']",
-					document,
-					null,
-					XPathResult.ANY_TYPE,
-					null,
-				).iterateNext()! as HTMLDivElement).style.display = "none";
-				(document.querySelectorAll(".dismissButton")! as NodeListOf<HTMLButtonElement>).forEach((element) =>
-					element.click()
-				);
-			}
-		}, 500);
-	});
+	onMount(async () => await importLibraries());
 </script>
+
+{#if $game.state == GameState.SETUP}
+	<SetupView {reset} />
+{/if}
 
 <Panorama
 	bind:this={panoComponent}
