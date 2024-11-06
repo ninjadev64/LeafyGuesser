@@ -24,7 +24,9 @@
 	},
 	"dependencies": {
 		"@geo-maps/earth-seas-500m": "^0.6",
+		"firebase": "^10.14",
 		"geojson-geometries-lookup": "^0.5",
+		"lodash.isequal": "^4.5",
 		"phosphor-svelte": "^2.0"
 	},
 	"type": "module"

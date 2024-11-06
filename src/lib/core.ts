@@ -1,4 +1,4 @@
-import { get, type Writable, writable } from "svelte/store";
+import { get, writable, type Writable } from "svelte/store";
 
 export const maps: Writable<google.maps.MapsLibrary> = writable(),
 	streetView: Writable<google.maps.StreetViewLibrary> = writable(),
@@ -17,43 +17,51 @@ export const allMarkers: Writable<google.maps.marker.AdvancedMarkerElement[]> = 
 export let map: Writable<google.maps.Map> = writable(),
 	pano: Writable<google.maps.StreetViewPanorama> = writable();
 
-export enum GameState {
-	SETUP,
-	PLAY,
-	RESULTS,
-}
-export type Game = {
-	state: GameState;
-	actual: google.maps.LatLng;
-	guessed: google.maps.LatLng | null;
-};
-export let game: Writable<Game> = writable({ state: GameState.SETUP, actual: null!, guessed: null });
-
 export type Settings = {
 	move: boolean;
 	pan: boolean;
 	zoom: boolean;
 	timer: number;
 };
-export const settings: Writable<Settings> = writable({
-	move: true,
-	pan: true,
-	zoom: true,
-	timer: 120,
+export enum GameState {
+	SETUP,
+	PLAY,
+	RESULTS,
+}
+export type GlobalData = {
+	settings: Settings;
+	state: GameState;
+	actual: google.maps.LatLng;
+};
+export let globalData: Writable<GlobalData> = writable({
+	state: GameState.SETUP,
+	actual: null!,
+	settings: {
+		move: true,
+		pan: true,
+		zoom: true,
+		timer: 120,
+	},
 });
-settings.subscribe((value) => {
-	if (!value.pan) {
-		value.move = false;
-		value.zoom = false;
+
+globalData.subscribe(({ settings }) => {
+	if (!settings.pan) {
+		settings.move = false;
+		settings.zoom = false;
 	}
 	if (get(pano)) {
 		get(pano).setOptions({
-			linksControl: value.move,
-			clickToGo: value.move,
-			panControl: value.pan,
-			zoomControl: value.zoom,
-			scrollwheel: value.zoom,
-			disableDoubleClickZoom: !value.zoom,
+			linksControl: settings.move,
+			clickToGo: settings.move,
+			panControl: settings.pan,
+			zoomControl: settings.zoom,
+			scrollwheel: settings.zoom,
+			disableDoubleClickZoom: !settings.zoom,
 		});
 	}
 });
+
+export type PlayerData = {
+	guessed: google.maps.LatLng | null;
+};
+export let playerData: Writable<PlayerData> = writable({ guessed: null });

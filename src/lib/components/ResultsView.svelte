@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { game, GameState, settings } from "$lib/core";
+	import { GameState, globalData, playerData } from "$lib/core";
 	import { getPoints } from "$lib/utils";
 
 	import Popup from "$lib/components/Popup.svelte";
@@ -25,8 +25,8 @@
 		<span class="mt-8 font-extrabold text-4xl text-white">
 			{
 				getPoints(
-					{ lat: $game.actual.lat(), lng: $game.actual.lng() },
-					$game.guessed ? { lat: $game.guessed.lat(), lng: $game.guessed.lng() } : null,
+					{ lat: $globalData.actual.lat(), lng: $globalData.actual.lng() },
+					$playerData.guessed ? { lat: $playerData.guessed.lat(), lng: $playerData.guessed.lng() } : null,
 				)
 			}
 			points
@@ -36,7 +36,7 @@
 
 <button
 	class="absolute left-2 top-2 w-10 h-10 hidden justify-center items-center font-bold text-xl text-white bg-neutral-700 rounded-full z-30"
-	class:!flex={$game.state == GameState.RESULTS}
+	class:!flex={$globalData.state == GameState.RESULTS}
 	on:click={() => settingsOpen = !settingsOpen}
 >
 	<Gear />

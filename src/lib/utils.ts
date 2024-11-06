@@ -1,5 +1,5 @@
-import { map } from "./core";
-import isSea from "./is-sea";
+import { map } from "./core.ts";
+import isSea from "./is-sea.ts";
 
 import { get } from "svelte/store";
 

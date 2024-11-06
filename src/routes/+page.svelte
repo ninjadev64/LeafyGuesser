@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { game, GameState, importLibraries, settings } from "$lib/core";
+	import { globalData, GameState, importLibraries } from "$lib/core";
+	import * as multiplayer from "$lib/multiplayer";
 
 	import Map from "$lib/components/Map.svelte";
 	import Panorama from "$lib/components/Panorama.svelte";
@@ -18,29 +19,32 @@
 
 	let settingsOpen = false;
 
-	onMount(async () => await importLibraries());
+	onMount(async () => {
+		await importLibraries();
+		multiplayer.init();
+	});
 </script>
 
-{#if $game.state == GameState.SETUP}
+{#if $globalData.state == GameState.SETUP}
 	<SetupView {reset} />
 {/if}
 
 <Panorama
 	bind:this={panoComponent}
-	blurred={$game.state != GameState.PLAY || settingsOpen}
-	interactable={$settings.pan}
+	blurred={$globalData.state != GameState.PLAY || settingsOpen}
+	interactable={$globalData.settings.pan}
 />
 
 <Map bind:this={mapComponent} hidden={settingsOpen} />
 
 <Timer
 	bind:this={timerComponent}
-	hidden={$game.state != GameState.PLAY}
+	hidden={$globalData.state != GameState.PLAY}
 	guess={() => {
 		if (mapComponent) mapComponent.guess();
 	}}
 />
 
-{#if $game.state == GameState.RESULTS}
+{#if $globalData.state == GameState.RESULTS}
 	<ResultsView {reset} bind:settingsOpen />
 {/if}

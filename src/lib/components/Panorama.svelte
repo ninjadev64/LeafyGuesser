@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { game, pano, streetView } from "$lib/core";
+	import { globalData, pano, streetView } from "$lib/core";
 	import { chooseLocation } from "$lib/utils";
 
 	let panoContainer: HTMLDivElement;
@@ -8,7 +8,7 @@
 
 	export async function resetPanorama() {
 		// Fetch closest panorama location
-		$game.actual = (await (new $streetView.StreetViewService()).getPanorama({
+		$globalData.actual = (await (new $streetView.StreetViewService()).getPanorama({
 			location: chooseLocation(),
 			radius: 3e6,
 			sources: [$streetView.StreetViewSource.OUTDOOR],
@@ -20,7 +20,7 @@
 			$pano = new google.maps.StreetViewPanorama(
 				panoContainer,
 				{
-					position: $game.actual,
+					position: $globalData.actual,
 					addressControl: false,
 					panControlOptions: {
 						position: google.maps.ControlPosition.LEFT_CENTER,
@@ -34,7 +34,7 @@
 				},
 			);
 		} else {
-			$pano.setPosition($game.actual);
+			$pano.setPosition($globalData.actual);
 		}
 		$pano.setPov($pano.getPhotographerPov());
 
