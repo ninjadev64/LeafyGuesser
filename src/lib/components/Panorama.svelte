@@ -1,19 +1,27 @@
 <script lang="ts">
-	import { globalData, pano, streetView } from "$lib/core";
+	import { globalData, host, pano } from "$lib/core";
+	import { streetView } from "$lib/googlemaps";
 	import { chooseLocation } from "$lib/utils";
 
 	let panoContainer: HTMLDivElement;
 
 	export let blurred: boolean, interactable: boolean;
 
+	$: if ($pano) {
+		$pano.setPosition($globalData.actual);
+	}
+
 	export async function resetPanorama() {
-		// Fetch closest panorama location
-		$globalData.actual = (await (new $streetView.StreetViewService()).getPanorama({
-			location: chooseLocation(),
-			radius: 3e6,
-			sources: [$streetView.StreetViewSource.OUTDOOR],
-			preference: google.maps.StreetViewPreference.NEAREST,
-		})).data.location?.latLng!;
+		if ($host) {
+			// Fetch closest panorama location
+			const loc = (await (new $streetView.StreetViewService()).getPanorama({
+				location: chooseLocation(),
+				radius: 3e6,
+				sources: [$streetView.StreetViewSource.OUTDOOR],
+				preference: google.maps.StreetViewPreference.NEAREST,
+			})).data.location?.latLng!;
+			$globalData.actual = { lat: loc.lat(), lng: loc.lng() };
+		}
 
 		// Initialise panorama
 		if (!$pano) {

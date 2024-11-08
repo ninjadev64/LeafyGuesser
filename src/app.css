@@ -19,5 +19,13 @@
 }
 
 body {
-	@apply bg-neutral-800;
+	@apply bg-neutral-800 overflow-hidden;
+}
+
+input[type='number']::-webkit-outer-spin-button,
+input[type='number']::-webkit-inner-spin-button,
+input[type='number'] {
+	-webkit-appearance: none !important;
+	-moz-appearance: textfield !important;
+	appearance: textfield;
 }

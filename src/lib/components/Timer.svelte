@@ -10,18 +10,22 @@
 	export function reset() {
 		if (interval) clearInterval(interval);
 		let start = Date.now();
-		interval = setInterval(() => {
-			let delta = Date.now() - start;
-			let seconds = Math.round($globalData.settings.timer - (delta / 1000));
-			if (seconds <= 0) {
-				guess();
-				clearInterval(interval);
-			}
-			if (display) {
-				display.innerHTML = Math.floor(seconds / 60).toString().padStart(2, "0") + ":" +
-					(seconds % 60).toFixed(0).padStart(2, "0");
-			}
-		}, 100, null);
+		interval = setInterval(
+			() => {
+				let delta = Date.now() - start;
+				let seconds = Math.round($globalData.settings.timer - (delta / 1000));
+				if (seconds <= 0) {
+					guess();
+					clearInterval(interval);
+				}
+				if (display) {
+					display.innerHTML = Math.floor(seconds / 60).toString().padStart(2, "0") + ":" +
+						(seconds % 60).toFixed(0).padStart(2, "0");
+				}
+			},
+			100,
+			null,
+		);
 	}
 	reset();
 </script>

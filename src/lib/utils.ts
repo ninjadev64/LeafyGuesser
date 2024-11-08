@@ -18,10 +18,11 @@ export function chooseLocation() {
 }
 
 export function putMarker(
-	position: google.maps.LatLng,
+	position: google.maps.LatLng | google.maps.LatLngLiteral,
 	type: "actual" | "guess" | "otherPlayer",
 	colour: string,
 ): google.maps.marker.AdvancedMarkerElement {
+	// @ts-expect-error Deno does not respect tsconfig `extends`
 	const span = document.createElement("span");
 	span.style.fontFamily = "'Material Icons'";
 	span.style.fontSize = "18px";
@@ -40,8 +41,8 @@ export function putMarker(
 }
 
 export function putPolyline(
-	from: google.maps.LatLng,
-	to: google.maps.LatLng,
+	from: google.maps.LatLng | google.maps.LatLngLiteral,
+	to: google.maps.LatLng | google.maps.LatLngLiteral,
 	strokeColour: string,
 ) {
 	const polyline = new google.maps.Polyline({
@@ -86,7 +87,21 @@ export function getPoints(
 	loc2: { lat: number; lng: number } | null,
 ) {
 	if (!loc1 || !loc2) return 0;
-	return Math.floor(
-		5000 * (Math.E ** (-getDistanceFromLatLngInKm(loc1, loc2) / 2000)),
-	);
+	const distance = getDistanceFromLatLngInKm(loc1, loc2);
+	if (distance < 0.2) return 5000;
+	return Math.floor(5000 * (Math.E ** (-distance / 2000)));
+}
+
+// https://stackoverflow.com/a/16348977/14269655
+export function stringToColour(str: string) {
+	let hash = 0;
+	str.split("").forEach((char) => {
+		hash = char.charCodeAt(0) + ((hash << 5) - hash);
+	});
+	let colour = "#";
+	for (let i = 0; i < 3; i++) {
+		const value = (hash >> (i * 8)) & 0xff;
+		colour += value.toString(16).padStart(2, "0");
+	}
+	return colour;
 }

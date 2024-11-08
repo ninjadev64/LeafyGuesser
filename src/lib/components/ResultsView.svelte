@@ -1,11 +1,10 @@
 <script lang="ts">
-	import { GameState, globalData, playerData } from "$lib/core";
+	import { GameState, globalData, host, playerData, reset } from "$lib/core";
 	import { getPoints } from "$lib/utils";
 
 	import Popup from "$lib/components/Popup.svelte";
 	import Gear from "phosphor-svelte/lib/Gear";
 
-	export let reset: () => void;
 	export let settingsOpen: boolean;
 </script>
 
@@ -14,19 +13,21 @@
 		class="fixed left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center z-20"
 		style="top: calc(45% + 20rem)"
 	>
-		<button
-			class="p-2 sm:!w-[48rem] font-semibold text-md text-white bg-green-500 rounded-md"
-			style="width: calc(100vw - 2rem)"
-			on:click={reset}
-		>
-			Continue
-		</button>
+		{#if $host}
+			<button
+				class="p-2 sm:!w-[48rem] font-semibold text-md text-white bg-green-500 rounded-md"
+				style="width: calc(100vw - 2rem)"
+				on:click={reset}
+			>
+				Continue
+			</button>
+		{/if}
 
-		<span class="mt-8 font-extrabold text-4xl text-white">
+		<span class="-mt-4 font-extrabold text-4xl text-white" class:!mt-8={$host}>
 			{
 				getPoints(
-					{ lat: $globalData.actual.lat(), lng: $globalData.actual.lng() },
-					$playerData.guessed ? { lat: $playerData.guessed.lat(), lng: $playerData.guessed.lng() } : null,
+					{ lat: $globalData.actual.lat, lng: $globalData.actual.lng },
+					$playerData.guess ? { lat: $playerData.guess.lat, lng: $playerData.guess.lng } : null,
 				)
 			}
 			points

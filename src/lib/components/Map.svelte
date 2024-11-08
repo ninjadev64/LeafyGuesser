@@ -1,6 +1,7 @@
 <script lang="ts">
-	import { allMarkers, allPolylines, GameState, globalData, map, maps, playerData } from "$lib/core";
-	import { putMarker, putPolyline } from "$lib/utils";
+	import { allMarkers, allPolylines, GameState, globalData, map, playerData } from "$lib/core";
+	import { maps } from "$lib/googlemaps";
+	import { putMarker } from "$lib/utils";
 
 	let guessMarker: google.maps.marker.AdvancedMarkerElement;
 	let mapContainer: HTMLDivElement;
@@ -8,6 +9,7 @@
 	export let hidden: boolean;
 
 	export function resetMap() {
+		// Reset map elements
 		$allMarkers.forEach((marker) => {
 			marker.map = null;
 			marker.remove();
@@ -15,8 +17,6 @@
 		$allMarkers = [];
 		$allPolylines.forEach((polyline) => polyline.setMap(null));
 		$allPolylines = [];
-		$playerData.guessed = null;
-		$globalData.state = GameState.PLAY;
 
 		// Initialise map
 		if (!$map) {
@@ -27,26 +27,15 @@
 		}
 		$map.setCenter({ lat: 0, lng: 0 });
 		$map.setZoom(0.6);
+
+		// Guess marker placement
 		$map.addListener("click", (e: google.maps.MapMouseEvent) => {
-			if ($globalData.state != GameState.PLAY) return;
-			$playerData.guessed = e.latLng!;
+			if ($globalData.state != GameState.PLAY || $playerData.hasGuessed) return;
+			$playerData.guess = { lat: e.latLng!.lat(), lng: e.latLng!.lng() };
 			if (guessMarker) guessMarker.map = null;
 			guessMarker = putMarker(e.latLng!, "guess", "hsl(0, 100%, 63%)");
 			$allMarkers.push(guessMarker);
 		});
-	}
-
-	export function guess() {
-		$allMarkers.push(putMarker($globalData.actual, "actual", "hsl(0, 100%, 63%)"));
-		if ($playerData.guessed) $allPolylines.push(putPolyline($globalData.actual, $playerData.guessed, "hsl(0, 100%, 63%)"));
-
-		let bounds = new google.maps.LatLngBounds();
-		$allMarkers.forEach((marker) => bounds.extend(marker.position!));
-		if ($playerData.guessed) $map.setZoom(Infinity);
-		$map.fitBounds(bounds);
-		if (!$playerData.guessed) $map.setZoom(5);
-
-		$globalData.state = GameState.RESULTS;
 	}
 
 	const playMapClasses = "flex-col absolute right-0 bottom-0 m-4 sm:m-6 " +
@@ -67,10 +56,10 @@
 	style="width: calc(100% - 2rem)"
 	bind:this={mapContainer}
 >
-	{#if $globalData.state == GameState.PLAY && guessMarker && guessMarker.map}
+	{#if $globalData.state == GameState.PLAY && $playerData.guess && !$playerData.hasGuessed}
 		<button
 			class="absolute bottom-0 p-2 w-full font-semibold text-md text-white bg-green-500 rounded-b-md z-20"
-			on:click={guess}
+			on:click={() => $playerData.hasGuessed = true}
 		>
 			Guess
 		</button>

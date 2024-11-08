@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { globalData, GameState, importLibraries } from "$lib/core";
+	import { componentReset, GameState, globalData } from "$lib/core";
+	import { importLibraries } from "$lib/googlemaps";
 	import * as multiplayer from "$lib/multiplayer";
 
 	import Map from "$lib/components/Map.svelte";
@@ -11,11 +12,11 @@
 	import { onMount } from "svelte";
 
 	let mapComponent: Map, panoComponent: Panorama, timerComponent: Timer;
-	async function reset() {
+	$componentReset = async () => {
 		mapComponent.resetMap();
 		await panoComponent.resetPanorama();
 		timerComponent.reset();
-	}
+	};
 
 	let settingsOpen = false;
 
@@ -26,7 +27,7 @@
 </script>
 
 {#if $globalData.state == GameState.SETUP}
-	<SetupView {reset} />
+	<SetupView />
 {/if}
 
 <Panorama
@@ -46,5 +47,5 @@
 />
 
 {#if $globalData.state == GameState.RESULTS}
-	<ResultsView {reset} bind:settingsOpen />
+	<ResultsView bind:settingsOpen />
 {/if}
